@@ -88,41 +88,28 @@ bool pFormula(ball* ball1, ball* ball2);
 std::vector <ball> balls;
 
 void qtree::insertTree(std::vector <ball>* s1, std::vector <ball>* s2, std::vector <ball>* s3, std::vector <ball>* s4) {
-	//std::cout << "Section 1: " << s1->size() << " Section 2: " << s2->size() << " Section 3: " << s3->size() << " Section 4: " << s4->size() << std::endl;
-	this->divided = true;
 	int finalMax = 3;
 	//Section 1
 	if (s1->size() > 0) {
-		//qtree q1tree = qtree(*s1, originx + (interval * 0.5f), originy + (abs(interval) * 0.5f), abs(interval) * 0.5f);
-
 		section1 = new qtree(*s1, originx + (interval * 0.5f), originy + (abs(interval) * 0.5f), abs(interval) * 0.5f);
 		if (s1->size() > finalMax) { checkForCollisions(section1); }
 	}
 	//Section 2
 	if (s2->size() > 0) {
-		//qtree q2tree = qtree(*s2, originx - (iterval * 0.5f), orgy + (abs(iterval) * 0.5f), abs(iterval) * 0.5f);
-
-
 		section2 = new qtree(*s2, originx - (interval * 0.5f), originy + (abs(interval) * 0.5f), abs(interval) * 0.5f);;
 		if (s2->size() > finalMax) { checkForCollisions(section2); }
 
 	}
 	//Section 3
 	if (s3->size() > 0) {
-
-		//qtree q3tree = qtree(*s3, originx - (interval * 0.5f), originy - (abs(interval) * 0.5f), abs(interval) * 0.5f);
 		section3 = new qtree(*s3, originx - (interval * 0.5f), originy - (abs(interval) * 0.5f), abs(interval) * 0.5f);
 		if (s3->size() > finalMax) { checkForCollisions(section3); }
 	}
 	//Section 4
 	if (s4->size() > 0) {
-	//	qtree q4tree = qtree(sect4, orgx + (iterval * 0.5f), orgy - (abs(iterval) * 0.5f), abs(iterval) * 0.5f);
-
 		section4 = new qtree(*s4, originx + (interval * 0.5f), originy - (abs(interval) * 0.5f), abs(interval) * 0.5f);
 		if (s4->size() > finalMax) { checkForCollisions(section4); }
-
 	}
-	
 }
 
 qtree::qtree(std::vector <ball> inputData, float ox, float oy, float pInterval) {
@@ -135,7 +122,6 @@ qtree::qtree(std::vector <ball> inputData, float ox, float oy, float pInterval) 
 	originy = oy;
 	interval = pInterval;
 	divided = false;
-
 }
 
 qtree::qtree() {
