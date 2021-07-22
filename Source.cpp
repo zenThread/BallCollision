@@ -3,13 +3,13 @@
 #include <vector>
 #include <string>
 
-int countOfBalls = 12;
+using namespace std;
+int countOfBalls = 20;
 double randMToN(double M, double N);
 void DrawCircle(float cx, float cy, float r, int num_segments);
 void printing(std::string input);
-
-
 void render();
+
 class ball {
 public:
 	float x, y;
@@ -17,7 +17,6 @@ public:
 	float size;
 	int id;
 	ball(float, float, float, float, float, int);
-
 
 	void ballUpdate() {
 		if (x >= 1.0 - size) {
@@ -41,6 +40,7 @@ public:
 		DrawCircle(x, y, size, 100);
 	}
 };
+
 ball::ball(float a, float b, float c, float d, float e, int f) {
 	x = a;
 	y = b;
@@ -50,6 +50,7 @@ ball::ball(float a, float b, float c, float d, float e, int f) {
 	id = f;
 
 }
+
 class qtree {
 public:
 	qtree *section1,*section2,*section3,*section4;
@@ -59,24 +60,71 @@ public:
 
 	qtree(std::vector <ball>,float,float,float); 
 	qtree();
+	void insertTree(std::vector <ball>* s1, std::vector <ball>* s2, std::vector <ball>* s3, std::vector <ball>* s4);
+
+	void itree() {
+		qtree atree = qtree();
+		this->section1 = &atree;
+		this->section1->divided = true;
+		cout << &this->section1->divided << endl;
+	}
 
 };
+void doCollisions(ball* cBall, qtree* queriedTree);
 
-void queryCollisions(qtree targetTree);
 class myrectangle {
 public:
 	float x, y;//Origin of rectangle
 	float width, height;//Size of rectangle.
 	myrectangle(float,float,float,float);
-
-	bool containRect(myrectangle rectx) {
-		return ((x + width >= rectx.x || x <= rectx.x + width) && 
-			(y + height >= rectx.y || y <= rectx.y + height));
-	}
+	myrectangle(ball*);
 };
+bool intersect(myrectangle* rect1, myrectangle* rect2);
 
+void queryCollisions(ball* targBall, qtree* thisTree, std::vector <qtree>* qqtree);
 void checkForCollisions(qtree* currentTree);
+bool pFormula(ball* ball1, ball* ball2);
+
 std::vector <ball> balls;
+
+void qtree::insertTree(std::vector <ball>* s1, std::vector <ball>* s2, std::vector <ball>* s3, std::vector <ball>* s4) {
+	//std::cout << "Section 1: " << s1->size() << " Section 2: " << s2->size() << " Section 3: " << s3->size() << " Section 4: " << s4->size() << std::endl;
+	this->divided = true;
+	int finalMax = 3;
+	//Section 1
+	if (s1->size() > 0) {
+		//qtree q1tree = qtree(*s1, originx + (interval * 0.5f), originy + (abs(interval) * 0.5f), abs(interval) * 0.5f);
+
+		section1 = new qtree(*s1, originx + (interval * 0.5f), originy + (abs(interval) * 0.5f), abs(interval) * 0.5f);
+		if (s1->size() > finalMax) { checkForCollisions(section1); }
+	}
+	//Section 2
+	if (s2->size() > 0) {
+		//qtree q2tree = qtree(*s2, originx - (iterval * 0.5f), orgy + (abs(iterval) * 0.5f), abs(iterval) * 0.5f);
+
+
+		section2 = new qtree(*s2, originx - (interval * 0.5f), originy + (abs(interval) * 0.5f), abs(interval) * 0.5f);;
+		if (s2->size() > finalMax) { checkForCollisions(section2); }
+
+	}
+	//Section 3
+	if (s3->size() > 0) {
+
+		//qtree q3tree = qtree(*s3, originx - (interval * 0.5f), originy - (abs(interval) * 0.5f), abs(interval) * 0.5f);
+		section3 = new qtree(*s3, originx - (interval * 0.5f), originy - (abs(interval) * 0.5f), abs(interval) * 0.5f);
+		if (s3->size() > finalMax) { checkForCollisions(section3); }
+	}
+	//Section 4
+	if (s4->size() > 0) {
+	//	qtree q4tree = qtree(sect4, orgx + (iterval * 0.5f), orgy - (abs(iterval) * 0.5f), abs(iterval) * 0.5f);
+
+		section4 = new qtree(*s4, originx + (interval * 0.5f), originy - (abs(interval) * 0.5f), abs(interval) * 0.5f);
+		if (s4->size() > finalMax) { checkForCollisions(section4); }
+
+	}
+	
+}
+
 qtree::qtree(std::vector <ball> inputData, float ox, float oy, float pInterval) {
 	section1 = NULL;
 	section2 = NULL;
@@ -86,23 +134,28 @@ qtree::qtree(std::vector <ball> inputData, float ox, float oy, float pInterval) 
 	originx = ox;
 	originy = oy;
 	interval = pInterval;
+	divided = false;
+
 }
+
 qtree::qtree() {
 	section1 = NULL;
 	section2 = NULL;
 	section3 = NULL;
 	section4 = NULL;
 }
+
 qtree mainTree = qtree();
+
 int main(int argc,char ** argv) {
 	std::cout << "Hello" << std::endl;
 	glutInit(&argc, argv);
 	glutInitWindowSize(1000, 1000);
 	glutCreateWindow("WINDOW_NAME");
 	float sz = 0.75 * (1.0 / float(countOfBalls));
+	cout << "Size = " << sz << endl;
 	for (int i = 0; i <= countOfBalls - 1; i++) {
-		//randMToN(-1.0 + sz,1.0 - sz)
-		balls.push_back(ball(-1.0 + sz + (float(i) * 1.5 / (countOfBalls - 1.0)), 0.0, randMToN(0.00001, 0.00005), randMToN(0.00001, 0.00005), sz, i));
+		balls.push_back(ball(-1.0 + sz + (float(i) * 1.5 / (countOfBalls - 1.0)), randMToN(0.00001, 0.5), randMToN(0.00001, 0.00005), randMToN(0.00001, 0.00005), sz, i));
 	}
 	mainTree = qtree(balls, 0.0, 0.0, 1.0);
 	glutDisplayFunc(render);
@@ -110,6 +163,12 @@ int main(int argc,char ** argv) {
 	return 0;
 }
 
+myrectangle::myrectangle(ball* b1) {
+	x = b1->x - b1->size;
+	y = b1->y - b1->size;
+	width = b1->size * 2.0;
+	height = b1->size * 2.0;
+}
 
 myrectangle::myrectangle(float xP, float yP, float wP, float hP) {
 	x = xP;
@@ -118,14 +177,17 @@ myrectangle::myrectangle(float xP, float yP, float wP, float hP) {
 	height = hP;
 }
 
-
+bool intersect(myrectangle * rect1, myrectangle * rect2) {
+	return (((rect2->x <= rect1->x + rect1->width && rect2->x + rect2->width >= rect1->x) ||
+		(rect2->x + rect2->width >= rect1->x && rect2->x + rect2->width <= rect1->x + rect1->width)) && ((rect2->y <= rect1->y + rect1->height && rect2->y + rect2->height>= rect1->y) ||
+			(rect2->y + rect2->height >= rect1->y && rect2->y + rect2->height <= rect1->y + rect1->height)));
+}
 
 void checkForCollisions(qtree* currentTree) {
-
-	std::vector <ball> aBalls = (*(qtree *)currentTree).datapoints;
-	float orgx = (*(qtree*)currentTree).originx;
-	float orgy = (*(qtree*)currentTree).originy;
-	float iterval = (*(qtree*)currentTree).interval;
+	std::vector <ball> aBalls = currentTree->datapoints;
+	float orgx = currentTree->originx;
+	float orgy = currentTree->originy;
+	float iterval = currentTree->interval;
 	std::vector <ball> sect1;
 	std::vector <ball> sect2;
 	std::vector <ball> sect3;
@@ -138,118 +200,114 @@ void checkForCollisions(qtree* currentTree) {
 	glEnd();
 	int cTotal = 0;
 	for (int bNum = 0; bNum <= aBalls.size() - 1; bNum++) {
-		if (aBalls[bNum].x - aBalls[bNum].size >= orgx && aBalls[bNum].x + aBalls[bNum].size >= orgx &&
-			aBalls[bNum].y - aBalls[bNum].size >= orgy && aBalls[bNum].y + aBalls[bNum].size >= orgy) { //Positive x and y section
-			//std::cout << "Printing Section 1..." << std::endl;
-			sect1.push_back(aBalls[bNum]);
-		}
-		else if (aBalls[bNum].x - aBalls[bNum].size <= orgx && aBalls[bNum].x + aBalls[bNum].size <= orgx &&
-			aBalls[bNum].y - aBalls[bNum].size >= orgy && aBalls[bNum].y + aBalls[bNum].size >= orgy) { //Positive x and y section
-			//std::cout << "Printing Section 2..." << std::endl;
-			sect2.push_back(aBalls[bNum]);
-		}
-		else if (aBalls[bNum].x - aBalls[bNum].size <= orgx && aBalls[bNum].x + aBalls[bNum].size <= orgx &&
-			aBalls[bNum].y - aBalls[bNum].size <= orgy && aBalls[bNum].y + aBalls[bNum].size <= orgy) { //Positive x and y section
-			//std::cout << "Printing Section 3..." << std::endl;
-			sect3.push_back(aBalls[bNum]);
-		}
-		else if (aBalls[bNum].x - aBalls[bNum].size >= orgx && aBalls[bNum].x + aBalls[bNum].size >= orgx &&
-			aBalls[bNum].y - aBalls[bNum].size <= orgy && aBalls[bNum].y + aBalls[bNum].size <= orgy) { //Positive x and y section
-			//std::cout << "Printing Section 4..." << std::endl;
-			sect4.push_back(aBalls[bNum]);
-		}
-
+		if (aBalls[bNum].x >= orgx && aBalls[bNum].y >= orgy) {sect1.push_back(aBalls[bNum]);}
+		else if (aBalls[bNum].x <= orgx && aBalls[bNum].y >= orgy ) { sect2.push_back(aBalls[bNum]);}
+		else if (aBalls[bNum].x <= orgx &&
+			aBalls[bNum].y <= orgy) {sect3.push_back(aBalls[bNum]);}
+		else if (aBalls[bNum].x >= orgx &&
+			aBalls[bNum].y <= orgy) { sect4.push_back(aBalls[bNum]);}
+		else {}
 	}
-	
-	//std::cout << "Section 1: " << sect1.size() << " Section 2 : " << sect2.size() << " Section 3 : " << sect3.size() << " Section 4 : " << sect4.size() << std::endl;
 	if (sect1.size() > 0 || sect2.size() > 0 || sect3.size() > 0 || sect4.size() > 0) {
-	
-		(*(qtree*)currentTree).divided = true;
-		int finalMax = 3;
-		//Section 1
-		if (sect1.size() > finalMax) {
-			qtree q1Tree = qtree(sect1,orgx+(iterval * 0.5f),orgy+(abs(iterval)*0.5f),abs(iterval)*0.5f);
-			(*(qtree*)currentTree).section1 = &q1Tree;
-			checkForCollisions((*(qtree*)currentTree).section1);
-		}
-		else if (sect1.size() > 0) { }
-		//Section 2
-		if (sect2.size() > finalMax) {
-			qtree q2tree = qtree(sect2, orgx - (iterval * 0.5), orgy + (abs(iterval) * 0.5), abs(iterval) * 0.5);
-			(*(qtree*)currentTree).section2 = &q2tree;
-			checkForCollisions((*(qtree*)currentTree).section2);
-		}
-		else if (sect2.size() > 0) { }
-		//Section 3
-		if (sect3.size() > finalMax) {
-			qtree q3tree = qtree(sect3, orgx - (iterval * 0.5), orgy - (abs(iterval) * 0.5), abs(iterval) * 0.5);
-			(*(qtree*)currentTree).section3 = &q3tree;
-			checkForCollisions((*(qtree*)currentTree).section3);
-		}
-		else if (sect3.size() > 0) {  }
-		//Section 4
-		if (sect4.size() > finalMax) {
-			qtree q4tree = qtree(sect4, orgx + (iterval * 0.5), orgy - (abs(iterval) * 0.5), abs(iterval) * 0.5);
-			(*(qtree*)currentTree).section4 = &q4tree;
-			checkForCollisions((*(qtree*)currentTree).section4);
-		}
-		else if (sect4.size() > 0) {  }
+		currentTree->insertTree(&sect1, &sect2, &sect3, &sect4);
 	}
-	else{return;}
-
+	else { return; }
 }
+
 double randMToN(double M, double N)
 {
 	return M + (rand() / (RAND_MAX / (N - M)));
 }
-void printing(std::string input) {
-	std::cout << input << std::endl;
-}
-void queryCollisions(qtree targetTree) {
 
-	for (int qi = 0; qi <= targetTree.datapoints.size(); qi++) {
-		//gets the x and y component of circle
-		float rectxaxis = targetTree.datapoints[qi].x - targetTree.datapoints[qi].size;
-		float rectyaxis = targetTree.datapoints[qi].y - targetTree.datapoints[qi].size;
-		float rectsize = targetTree.datapoints[qi].size * 2.0;
-		myrectangle rect1 = myrectangle(rectxaxis, rectyaxis, rectsize, rectsize);
-		
+void queryCollisions(ball* targBall,qtree * thisTree,std::vector <qtree>* qqtree) {
+	if (thisTree->divided) {
+		myrectangle* _rt1 = new myrectangle(targBall);
+		myrectangle quad1 = myrectangle(thisTree->originx, thisTree->originy,
+			thisTree->interval, thisTree->interval);
+		myrectangle quad2 = myrectangle(thisTree->originx-(thisTree->interval), thisTree->originy,
+			(thisTree->interval), thisTree->interval);
+		myrectangle quad3 = myrectangle(thisTree->originx - (thisTree->interval), thisTree->originy - (thisTree->interval),
+			(thisTree->interval), (thisTree->interval));
+		myrectangle quad4 = myrectangle(thisTree->originx, thisTree->originy - (thisTree->interval),
+			thisTree->interval, (thisTree->interval));
+		if (intersect(_rt1, &quad1) && thisTree->section1 != NULL) {
+			if (thisTree->section1->divided == false) {
+				doCollisions(targBall, thisTree->section1);
+				qqtree->push_back(*thisTree->section1); }
+			queryCollisions(targBall, thisTree->section1, qqtree);			
+		} 
+		if (intersect(_rt1, &quad2) && thisTree->section2 != NULL) {
+			if (thisTree->section2->divided == false) { 
+				doCollisions(targBall, thisTree->section2);
+				qqtree->push_back(*thisTree->section2); }
+			 queryCollisions(targBall, thisTree->section2, qqtree);
+		}
+		if (intersect(_rt1, &quad3) && thisTree->section3 != NULL) {
+			if (thisTree->section3->divided == false) { 
+				doCollisions(targBall, thisTree->section3);
+				qqtree->push_back(*thisTree->section3); }
+			queryCollisions(targBall, thisTree->section3, qqtree);
+		}
+		if (intersect(_rt1, &quad4) && thisTree->section4 != NULL) {
+			if (thisTree->section4->divided == false) { 
+				doCollisions(targBall, thisTree->section4);
+				qqtree->push_back(*thisTree->section4); }
+			 queryCollisions(targBall, thisTree->section4, qqtree);
+		}
+		delete _rt1;
+		_rt1 = NULL;
+	}
+}
+
+void deleteMem(qtree* xtree) {
+	if (xtree->divided == true) {
+		if (xtree->section1 != NULL) { deleteMem(xtree->section1); delete xtree->section1; xtree->section1 = NULL; }
+		if (xtree->section2 != NULL) { deleteMem(xtree->section2); delete xtree->section2; xtree->section2 = NULL;}
+		if (xtree->section3 != NULL) { deleteMem(xtree->section3); delete xtree->section3; xtree->section3 = NULL;}
+		if (xtree->section4 != NULL) { deleteMem(xtree->section4);delete xtree->section4; xtree->section4 = NULL;
+		}
+
 	}
 
-
 }
 
-void render(void) {
-	
-	//std::vector <ball> secballs;
-	//for (int x = 0; x <= 2; x++) { secballs.push_back(balls[x+1]); }
-	//qtree secTree = qtree(secballs);
-	//qtree* ptr = &secTree;
-	//firstTree.divided = true;
-	//firstTree.section1 = ptr;
-	//std::cout << firstTree.divided << std::endl;
-	//std::cout << firstTree.section1->datapoints[0].x << std::endl;
-	//std::cout << (*(std::vector <ball> *)(firstTree.datapoints)).size() << std::endl;
+bool pFormula(ball* ball1, ball* ball2) {
+		auto ydis = (ball2->y - ball1->y);
+		auto xdis = (ball2->x - ball1->x);
+		return sqrtf((xdis * xdis) + (ydis * ydis)) <= (ball1->size + ball2->size);
+}
 
-	//std::vector <ball> testData = *(std::vector <ball> *)firstTree.datapoints;
-	//std::cout << firstTree.divided << std::endl;
-	//std::cout << testData.size() << std::endl;
-	
+void doCollisions(ball* cBall,qtree* queriedTree) {
+	for (int cint = 0; cint <= queriedTree->datapoints.size() - 1;cint++) {
+		if (queriedTree->datapoints[cint].id != cBall->id) {
+			ball* secBall = &(&mainTree)->datapoints[queriedTree->datapoints[cint].id];
+			if (pFormula(secBall,cBall)) {
+				auto ydis = (cBall->y - secBall->y);
+				auto xdis = (cBall->x - secBall->x);
+				float distance = sqrtf((xdis * xdis) + (ydis * ydis));
+				float fOverlap = 0.5f * (distance - secBall->size - cBall->size);
+				secBall->x += fOverlap * xdis / distance;
+				secBall->y += fOverlap * ydis / distance;
+				cBall->x -= fOverlap * xdis / distance;
+				cBall->y -= fOverlap * ydis / distance;
+
+			}
+		}
+	}
+}
+
+void render(void) {	
 	while (true) {
 		glClearColor(0, 0, 0, 0);
 		glClear(GL_COLOR_BUFFER_BIT);
-	
-		void* tst;
-		checkForCollisions(&mainTree);
-		//std::cout << mainTree.section1 << std::endl;
-		if (mainTree.section1 != NULL) { std::cout << mainTree.section1->divided << std::endl; }
-		
-		for (int num = 0; num <= mainTree.datapoints.size() - 1; num++) {
-			mainTree.datapoints[num].ballUpdate();
+		qtree* treePtr = &mainTree;
+		deleteMem(treePtr);
+		checkForCollisions(treePtr);
+		std::vector <qtree> queryQ;
+		for (int num = 0; num <= treePtr->datapoints.size() - 1; num++) {
+			treePtr->datapoints[num].ballUpdate();
+			queryCollisions(&treePtr->datapoints[num], treePtr, &queryQ);
 		}
-		//Insert Section start
-		
-		
 		glFlush();
 	}
 }
